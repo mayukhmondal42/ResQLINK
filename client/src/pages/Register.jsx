@@ -139,7 +139,7 @@ export default function Register() {
                 onChange={(e) =>
                   setForm({ ...form, organizationName: e.target.value })
                 }
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand"
+                className="text-black mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand"
                 placeholder="e.g. Sion Hospital"
               />
             </div>

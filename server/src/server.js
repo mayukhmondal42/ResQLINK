@@ -21,11 +21,13 @@ connectDB();
 
 const app = express();
 
-
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://res-qlink-xi.vercel.app',
+  'https://resqlink.vercel.app',
+  'https://resqlink-git-main-mayukhmandal42.vercel.app',
 ].filter(Boolean);
 
 app.use(cors({
@@ -54,11 +56,9 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'ResQLink API is running', demoMode: process.env.DEMO_MODE === 'true' });
 });
-
 
 app.use('/api/auth', authRoutes);
 app.use('/api/incidents', incidentRoutes);
