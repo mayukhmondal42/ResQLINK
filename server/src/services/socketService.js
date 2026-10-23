@@ -5,7 +5,14 @@ let io = null;
 function initSocket(httpServer) {
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.CLIENT_URL || '*',
+      origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        // Allow all vercel.app + localhost + CLIENT_URL
+        if (origin.endsWith('.vercel.app') || origin.includes('localhost') || origin === process.env.CLIENT_URL) {
+          return callback(null, true);
+        }
+        return callback(null, true);
+      },
       credentials: true,
     },
   });
