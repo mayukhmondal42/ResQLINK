@@ -20,14 +20,6 @@ export default function IncidentCard({ incident, onClick, actions }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Patches the single updated incident directly into every cached incidents
-  // list (['incidents','all'], ['incidents','mine'], etc — setQueriesData
-  // matches any query key starting with 'incidents') instead of invalidating
-  // and re-fetching the whole list. The server already sends back the full,
-  // authoritative updated incident in its response — refetching to get the
-  // same data again was pure wasted latency, which is what made
-  // confirm/dispute/verify feel slow (a write + a full list re-read instead
-  // of just the write).
   const patchIncidentInCache = (updatedIncident) => {
     queryClient.setQueriesData({ queryKey: ['incidents'] }, (old) => {
       if (!old?.incidents) return old;
@@ -83,11 +75,9 @@ export default function IncidentCard({ incident, onClick, actions }) {
         </p>
       )}
 
-      {/* AI resource recommendation — an internal dispatch checklist for ops
-          staff. Deliberately hidden from citizens: it's not useful to the
-          person who filed the report, and a raw "3 ambulances, 15 min ETA"
-          readout can read as alarming rather than reassuring. Citizens see
-          <EmergencyContacts> instead (see CitizenDashboard.jsx). */}
+      
+
+
       {canActAsAuthority && incident.aiAnalysis?.recommendedResources?.length > 0 && (
         <div className="mt-2 rounded-md border border-severity-info/30 bg-severity-info/5 px-3 py-2">
           <p className="font-mono text-[10px] uppercase tracking-wide text-severity-info">Recommended deployment</p>
@@ -107,7 +97,7 @@ export default function IncidentCard({ incident, onClick, actions }) {
         </div>
       )}
 
-      {/* Crowd verification — anyone except the original reporter can weigh in. */}
+      
       {!isOwnReport && incident.status !== 'rejected' && (
         <div className="mt-3 flex items-center gap-2 border-t border-console-border pt-2" onClick={(e) => e.stopPropagation()}>
           <span className="font-mono text-[10px] uppercase text-console-muted">Does this look real?</span>
@@ -136,7 +126,7 @@ export default function IncidentCard({ incident, onClick, actions }) {
         </div>
       )}
 
-      {/* Authority verification — EOC/rescue/admin only, one-time decision. */}
+      
       {canActAsAuthority && !alreadyDecided && (
         <div className="mt-2 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <span className="font-mono text-[10px] uppercase text-console-muted">Authority review:</span>

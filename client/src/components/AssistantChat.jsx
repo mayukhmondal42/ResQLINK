@@ -1,12 +1,3 @@
-// -----------------------------------------------------------------------------
-// AssistantChat.jsx — bottom-right floating chat widget, mounted globally
-// (see Navbar.jsx) so it's available on every authenticated page.
-//
-// Behavior branches by role on the BACKEND (see aiController.chat) so this
-// component doesn't need to know the rules — it just renders whatever
-// `reply` (and, for EOC, `incidents`) comes back.
-// -----------------------------------------------------------------------------
-
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
@@ -37,8 +28,7 @@ export default function AssistantChat() {
   const [coords, setCoords] = useState(null);
   const scrollRef = useRef(null);
 
-  // Grab the citizen's location once, quietly, so "nearest shelter" can work
-  // without an extra step — if permission is denied, we just skip that part.
+
   useEffect(() => {
     if (isDispatcher || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
@@ -97,7 +87,6 @@ export default function AssistantChat() {
                   }`}
                 >
                   <p>{m.text}</p>
-                  {/* EOC search results render as a compact clickable list. */}
                   {m.incidents?.length > 0 && (
                     <div className="mt-2 space-y-1">
                       {m.incidents.map((inc) => (

@@ -1,8 +1,3 @@
-// -----------------------------------------------------------------------------
-// server.js — application entry point. Wires together Express (REST API),
-// Socket.IO (real-time events) on one shared HTTP server, and MongoDB.
-// -----------------------------------------------------------------------------
-
 require('dotenv').config();
 const http = require('http');
 const express = require('express');
@@ -26,8 +21,7 @@ connectDB();
 
 const app = express();
 
-// --- Core middleware ---------------------------------------------------
-// FIXED: allow CLIENT_URL or localhost, not '*', because credentials: true
+
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
@@ -42,7 +36,7 @@ app.use(cors({
     if (process.env.NODE_ENV === 'production') {
       return callback(new Error('Not allowed by CORS'));
     }
-    return callback(null, true); // allow any in dev only
+    return callback(null, true); 
   },
   credentials: true
 }));
@@ -60,12 +54,12 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// --- Health check ---
+
 app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'ResQLink API is running', demoMode: process.env.DEMO_MODE === 'true' });
 });
 
-// --- Feature routes ------------------------------------------------------
+
 app.use('/api/auth', authRoutes);
 app.use('/api/incidents', incidentRoutes);
 app.use('/api/facilities', facilityRoutes);
@@ -73,11 +67,9 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/alerts', alertRoutes);
 
-// --- Error handling ---
 app.use(notFound);
 app.use(errorHandler);
 
-// --- HTTP + Socket.IO share the same server ---
 const httpServer = http.createServer(app);
 initSocket(httpServer);
 

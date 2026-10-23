@@ -1,16 +1,3 @@
-// -----------------------------------------------------------------------------
-// EmergencyContacts.jsx — shown to citizens instead of the internal "AI
-// resource recommendation" dispatch checklist (see IncidentCard.jsx). A
-// citizen who just filed a report doesn't need to know "3 ambulances were
-// dispatched" — they need to know who to call right now if things escalate
-// before help arrives.
-//
-// These are standard national emergency helpline numbers (India) — static
-// and always available, deliberately not dependent on the network or the
-// AI service, since this is exactly the information a citizen needs most
-// when connectivity is unreliable.
-// -----------------------------------------------------------------------------
-
 const CONTACTS = [
   { label: 'National Emergency Number', number: '112' },
   { label: 'Police', number: '100' },

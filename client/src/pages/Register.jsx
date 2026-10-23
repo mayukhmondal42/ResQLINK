@@ -19,7 +19,7 @@ export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'citizen', organizationName: '' });
-  const [docFile, setDocFile] = useState(null); // { dataUrl, fileName } once read
+  const [docFile, setDocFile] = useState(null); 
   const [docError, setDocError] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -27,9 +27,6 @@ export default function Register() {
   const isOrgRole = form.role !== 'citizen' && form.role !== 'volunteer';
   const needsDocument = NON_CITIZEN_ROLES.includes(form.role);
 
-  // Reads the chosen file into a base64 data URI so it can travel in the
-  // same JSON request body as the rest of the registration form — no
-  // separate file-upload endpoint or storage service needed for this scale.
   const handleFileChange = (e) => {
     setDocError('');
     const file = e.target.files?.[0];

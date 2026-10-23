@@ -1,12 +1,3 @@
-// -----------------------------------------------------------------------------
-// Incident.js — the central entity of ResQLINK.
-//
-// An "incident" covers SOS calls, disaster reports, and resource requests —
-// they all share the same shape (who, where, what, how urgent) so we model
-// them as one collection distinguished by `type`. This mirrors how a real
-// emergency-dispatch system (e.g. CAD software) typically works.
-// -----------------------------------------------------------------------------
-
 const mongoose = require('mongoose');
 
 const incidentSchema = new mongoose.Schema(
@@ -20,7 +11,7 @@ const incidentSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, required: true, trim: true },
 
-    // Set by the citizen initially, then possibly overridden by AI / EOC staff.
+    
     category: {
       type: String,
       enum: ['flood', 'fire', 'earthquake', 'medical', 'structural', 'other'],
@@ -39,34 +30,33 @@ const incidentSchema = new mongoose.Schema(
       default: 'reported',
     },
 
-    // GeoJSON Point so we can run $near / $geoWithin queries (duplicate
-    // detection, "incidents near me", map bounding-box queries, etc.)
+    
+
     location: {
       type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number], required: true }, // [lng, lat]
+      coordinates: { type: [Number], required: true }, 
       address: { type: String, trim: true },
     },
 
     reportedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     assignedTeam: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
 
-    // Populated by the AI service (Gemini or the offline mock fallback).
+    
     aiAnalysis: {
       summary: { type: String, default: '' },
       suggestedSeverity: { type: String, default: '' },
       suggestedCategory: { type: String, default: '' },
-      suggestedResources: [{ type: String }], // legacy free-text list, superseded by recommendedResources below
-      recommendedResources: [{ name: String, qty: Number }], // deterministic dispatch checklist, see aiService.js
+      suggestedResources: [{ type: String }], 
+      recommendedResources: [{ name: String, qty: Number }], 
       etaMinutes: { type: Number, default: null },
-      confidence: { type: Number, default: 50 }, // 0-100, feeds the trust score
+      confidence: { type: Number, default: 50 }, 
       generatedAt: { type: Date },
       source: { type: String, enum: ['gemini', 'mock', 'none'], default: 'none' },
     },
 
-    // ---- Multi-layer verification (fake-report defense) -------------------
-    // The device location captured (with permission) when the report was
-    // submitted, used only to sanity-check it against the claimed incident
-    // location — never shown publicly, only to EOC/trust-score logic.
+    
+
+
     reporterLocation: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number], default: null },
@@ -100,18 +90,18 @@ const incidentSchema = new mongoose.Schema(
       },
     },
 
-    // Set automatically when a critical, non-suspicious incident hasn't
-    // been acknowledged/dispatched yet — surfaced prominently on the EOC
-    // dashboard so it can't get lost in a long incident queue.
-    escalated: { type: Boolean, default: false },
-    // ------------------------------------------------------------------------
+    
 
-    // If this incident was auto-detected as a duplicate of another one.
+
+    escalated: { type: Boolean, default: false },
+    
+
+
     duplicateOf: { type: mongoose.Schema.Types.ObjectId, ref: 'Incident', default: null },
 
     imageUrl: { type: String, default: '' },
 
-    // A running log of status changes for the "incident timeline" feature.
+    
     timeline: [
       {
         status: String,
@@ -121,8 +111,9 @@ const incidentSchema = new mongoose.Schema(
       },
     ],
 
-    // Marks records created by the demo seed script so they can be reset/wiped
-    // independently of real user data.
+    
+
+    
     isDemoData: { type: Boolean, default: false },
   },
   { timestamps: true }

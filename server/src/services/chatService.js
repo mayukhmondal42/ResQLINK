@@ -1,7 +1,3 @@
-// -----------------------------------------------------------------------------
-// chatService.js — REAL AI version with Gemini + fallback to rules
-// -----------------------------------------------------------------------------
-
 const CITIZEN_ADVICE_RULES = [
   {
     keywords: ['water', 'flood', 'flooding', 'drowning'],

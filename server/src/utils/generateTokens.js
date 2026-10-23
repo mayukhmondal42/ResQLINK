@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// generateTokens.js — issues the short-lived access token (sent to the client
-// in the JSON response, kept in memory / React state) and the long-lived
-// refresh token (stored as an httpOnly cookie so client-side JS can't read
-// it, which mitigates XSS token theft).
-// -----------------------------------------------------------------------------
-
 const jwt = require('jsonwebtoken');
 
 function generateAccessToken(user) {

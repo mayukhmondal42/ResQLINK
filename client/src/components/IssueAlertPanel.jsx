@@ -1,9 +1,3 @@
-// -----------------------------------------------------------------------------
-// IssueAlertPanel.jsx — lets the EOC broadcast a top-bar notification (e.g.
-// "Flash flood warning — evacuate low-lying areas near Hindmata") to every
-// connected dashboard instantly via Socket.IO, and manage/dismiss active ones.
-// -----------------------------------------------------------------------------
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axiosClient.js';

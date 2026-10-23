@@ -1,18 +1,8 @@
-// -----------------------------------------------------------------------------
-// IncidentMap.jsx — renders incidents (colored by severity) and facilities
-// (shelters/hospitals) on an OpenStreetMap tile layer via react-leaflet.
-//
-// Known Leaflet + bundler gotcha: the default marker icon images reference
-// relative paths that break under Vite/webpack. We fix this once here by
-// pointing Leaflet at the CDN-hosted marker images instead of local assets.
-// -----------------------------------------------------------------------------
-
 import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
-// Risk colors match the spec exactly: Green (Low), Yellow (Medium),
-// Orange (High), Red (Critical).
+
 const SEVERITY_COLORS = {
   low: '#2BB673',
   medium: '#F2C94C',
@@ -20,8 +10,6 @@ const SEVERITY_COLORS = {
   critical: '#E8462F',
 };
 
-// A distinct symbol per calamity category, so a glance at the map tells you
-// *what* is happening, not just how bad it is.
 const CATEGORY_EMOJI = {
   flood: '🌊',
   fire: '🔥',
@@ -33,12 +21,7 @@ const CATEGORY_EMOJI = {
 
 const FADED_STATUSES = ['resolved', 'rejected', 'merged'];
 
-// Builds a Leaflet divIcon for an incident: colored disc (risk color) with
-// the category emoji inside. Critical + still-active incidents pulse via
-// the same `animate-pulseBeacon` keyframe used by <SeverityBadge>; resolved/
-// rejected/merged incidents fade to a dim grayscale so the map visually
-// "clears" as a disaster is brought under control, without incidents
-// disappearing outright (they stay clickable for the record).
+
 function incidentIcon(incident) {
   const color = SEVERITY_COLORS[incident.severity] || SEVERITY_COLORS.medium;
   const emoji = CATEGORY_EMOJI[incident.category] || CATEGORY_EMOJI.other;
@@ -66,8 +49,7 @@ function incidentIcon(incident) {
   });
 }
 
-// A distinct square icon for facilities (shelters/hospitals) so they read
-// differently from the circular incident markers at a glance.
+
 const facilityIcon = (type) =>
   L.divIcon({
     className: '',
@@ -80,14 +62,7 @@ const facilityIcon = (type) =>
     iconAnchor: [8, 8],
   });
 
-// react-leaflet's <MapContainer center> prop only sets the INITIAL view —
-// it deliberately ignores updates after mount (so it doesn't fight a user
-// who's panned around). But incidents/facilities usually load a moment
-// after the map first mounts, so without this helper the map would stay
-// stuck wherever the fallback `center` prop pointed. This component uses
-// the imperative Leaflet map instance to jump to the real data exactly
-// once, the first time any coordinates arrive — never again after that, so
-// it doesn't yank the view out from under someone who's since panned away.
+
 function AutoCenterOnData({ targetCenter, zoom }) {
   const map = useMap();
   const hasCentered = useRef(false);
@@ -101,10 +76,7 @@ function AutoCenterOnData({ targetCenter, zoom }) {
   return null;
 }
 
-// When the person clicks an incident in the sidebar feed (not on the map
-// itself), this flies the map to that incident's exact location and opens
-// its popup — without this, there'd be no obvious link between "an item in
-// a list" and "a pin somewhere on a map you'd have to hunt for yourself."
+
 function FlyToIncident({ incidentId, incidents, markerRefs }) {
   const map = useMap();
 
@@ -115,10 +87,6 @@ function FlyToIncident({ incidentId, incidents, markerRefs }) {
 
     const [lng, lat] = incident.location.coordinates;
     map.flyTo([lat, lng], Math.max(map.getZoom(), 15), { duration: 1 });
-
-    // Open the popup slightly after the fly animation settles, rather than
-    // instantly — opening it mid-flight looks glitchy and can miscalculate
-    // its position since the map is still moving.
     const timer = setTimeout(() => {
       markerRefs.current[incidentId]?.openPopup();
     }, 650);
@@ -129,10 +97,7 @@ function FlyToIncident({ incidentId, incidents, markerRefs }) {
   return null;
 }
 
-// Averages every incident + facility coordinate into one center point, so
-// the map opens wherever the real data actually is — Mumbai (or anywhere
-// else) only shows up because that's where the seeded demo data happens to
-// be, not because it's hardcoded as "the" location.
+
 function computeDataCenter(incidents, facilities) {
   const points = [
     ...incidents.map((i) => i.location?.coordinates),
@@ -148,11 +113,11 @@ function computeDataCenter(incidents, facilities) {
 export default function IncidentMap({
   incidents = [],
   facilities = [],
-  center = [19.076, 72.8777], // fallback ONLY used when there's no data at all yet
+  center = [19.076, 72.8777],
   zoom = 12,
   height = '100%',
   onIncidentClick,
-  flyToIncidentId = null, // set this to an incident's _id to pan/zoom the map to it
+  flyToIncidentId = null,
 }) {
   const dataCenter = computeDataCenter(incidents, facilities);
   const markerRefs = useRef({});
@@ -160,7 +125,6 @@ export default function IncidentMap({
   return (
     <div style={{ height }} className="overflow-hidden rounded-lg border border-console-border">
       <MapContainer center={dataCenter || center} zoom={zoom} scrollWheelZoom style={{ width: '100%', height: '100%' }}>
-        {/* OpenStreetMap tiles — free, no API key required. */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

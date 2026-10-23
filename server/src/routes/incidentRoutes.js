@@ -11,7 +11,7 @@ const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.use(protect); // every incident route requires a logged-in user
+router.use(protect); 
 
 router.post('/', createIncident);
 router.get('/', getIncidents);

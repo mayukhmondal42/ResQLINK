@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// SeverityBadge.jsx — a small pulsing "beacon" + label, used everywhere an
-// incident's severity is shown. This is ResQLINK's one recurring visual
-// signature: every severity reads as a live status light, like a real
-// dispatch console, rather than a flat colored chip.
-// -----------------------------------------------------------------------------
-
 const SEVERITY_STYLES = {
   critical: { dot: 'bg-severity-critical', text: 'text-severity-critical', label: 'Critical' },
   high: { dot: 'bg-severity-high', text: 'text-severity-high', label: 'High' },

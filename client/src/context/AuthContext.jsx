@@ -1,11 +1,3 @@
-// -----------------------------------------------------------------------------
-// AuthContext.jsx — holds the current user + access token in React state,
-// and exposes login/register/logout helpers to the rest of the app.
-//
-// On first mount we try a silent refresh (POST /auth/refresh) so a page
-// reload doesn't log the user out as long as their refresh cookie is valid.
-// -----------------------------------------------------------------------------
-
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import api, { setAccessToken, setOnRefreshFailed } from '../api/axiosClient';
 
@@ -13,7 +5,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // true while we attempt silent refresh
+  const [loading, setLoading] = useState(true); 
 
   const clearSession = useCallback(() => {
     setUser(null);
@@ -23,7 +15,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     setOnRefreshFailed(clearSession);
 
-    // Attempt to restore a session from the httpOnly refresh cookie.
     (async () => {
       try {
         const { data } = await api.post('/auth/refresh');

@@ -1,8 +1,3 @@
-// -----------------------------------------------------------------------------
-// aiService.js — ResQLink AI triage
-// Uses Gemini to analyze incident reports
-// -----------------------------------------------------------------------------
-
 async function geminiAnalyze({ title, description }) {
   const prompt = `You are an emergency dispatch triage assistant. Analyze this
 citizen incident report and respond with STRICT JSON only, no markdown fences,
@@ -81,7 +76,7 @@ async function analyzeIncident({ title, description }) {
   }
 }
 
-// --- ADDED FOR demoSeed.js ---
+
 function computeResourceRecommendation({ category, severity }) {
   if (severity === 'critical') return { recommendedResources: ['rescue_team', 'ambulance', 'boat'], etaMinutes: 15 };
   if (severity === 'high') return { recommendedResources: ['rescue_team', 'ambulance'], etaMinutes: 25 };

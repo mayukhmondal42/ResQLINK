@@ -9,9 +9,8 @@ import IncidentCard from '../components/IncidentCard.jsx';
 import EmergencyContacts from '../components/EmergencyContacts.jsx';
 import OfflineMapControl from '../components/OfflineMapControl.jsx';
 
-// Fallback used only if geolocation is unavailable/denied — matches the
-// seeded demo data's location so the offline download still has somewhere
-// sensible to center on.
+
+
 const FALLBACK_CENTER = [19.076, 72.8777];
 
 export default function CitizenDashboard() {
@@ -43,9 +42,8 @@ export default function CitizenDashboard() {
     queryFn: async () => (await api.get('/incidents')).data,
   });
 
-  // Live updates: whenever the server broadcasts a new/changed incident,
-  // just invalidate the relevant queries so React Query refetches. Simpler
-  // and less bug-prone than manually splicing the socket payload into cache.
+  
+
   useEffect(() => {
     if (!socket) return;
     const invalidate = () => {

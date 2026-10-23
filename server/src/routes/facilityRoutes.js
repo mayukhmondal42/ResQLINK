@@ -4,7 +4,7 @@ const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-router.get('/', getFacilities); // public-ish: anyone logged in can see shelters/hospitals
+router.get('/', getFacilities); 
 router.use(protect);
 router.get('/mine', authorize('hospital', 'shelter'), getMyFacility);
 router.post('/', authorize('eoc', 'admin', 'hospital', 'shelter'), createFacility);

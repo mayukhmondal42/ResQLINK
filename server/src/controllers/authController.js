@@ -1,12 +1,3 @@
-// -----------------------------------------------------------------------------
-// authController.js — registration, login, silent token refresh, and logout.
-//
-// Access token  -> returned in the JSON body, kept in React state/memory only.
-// Refresh token -> set as an httpOnly, sameSite cookie so it can't be read
-//                  by client-side JS (mitigates XSS token theft) and is
-//                  automatically re-sent by the browser on /refresh calls.
-// -----------------------------------------------------------------------------
-
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -15,13 +6,13 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/generate
 
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', // requires HTTPS in prod
+  secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  path: '/api/auth', // only sent back to auth routes, reduces exposure
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/api/auth',
 };
 
-// @route POST /api/auth/register
+
 const register = asyncHandler(async (req, res) => {
   const { name, email, password, role, organizationName, phone, verificationDocument } = req.body;
 
@@ -42,7 +33,7 @@ const register = asyncHandler(async (req, res) => {
       ? {
           dataUrl: verificationDocument.dataUrl,
           fileName: verificationDocument.fileName || '',
-          status: 'pending', // awaiting EOC/admin review
+          status: 'pending', 
           uploadedAt: new Date(),
         }
       : undefined;
@@ -66,7 +57,7 @@ const register = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, user, accessToken });
 });
 
-// @route POST /api/auth/login
+
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -85,9 +76,7 @@ const login = asyncHandler(async (req, res) => {
   res.json({ success: true, user, accessToken });
 });
 
-// @route POST /api/auth/refresh
-// Called silently by the frontend's axios interceptor when a request gets a
-// 401, so the user doesn't get logged out just because 15 minutes passed.
+
 const refresh = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken;
   if (!token) {
@@ -119,7 +108,7 @@ const refresh = asyncHandler(async (req, res) => {
   res.json({ success: true, accessToken });
 });
 
-// @route POST /api/auth/logout
+
 const logout = asyncHandler(async (req, res) => {
   const token = req.cookies?.refreshToken;
   if (token) {

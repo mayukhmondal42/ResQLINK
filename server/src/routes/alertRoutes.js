@@ -5,7 +5,7 @@ const { protect, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 router.use(protect);
-router.get('/active', getActiveAlerts); // any logged-in role can see active alerts
+router.get('/active', getActiveAlerts); 
 router.post('/', authorize('eoc', 'admin'), issueAlert);
 router.patch('/:id/dismiss', authorize('eoc', 'admin'), dismissAlert);
 

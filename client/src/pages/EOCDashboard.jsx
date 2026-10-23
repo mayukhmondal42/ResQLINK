@@ -24,7 +24,7 @@ export default function EOCDashboard() {
   const { data: incidentsData } = useQuery({
     queryKey: ['incidents', 'all'],
     queryFn: async () => (await api.get('/incidents')).data,
-    refetchInterval: 30000, // safety net in case a socket event is missed
+    refetchInterval: 30000, 
   });
 
   const { data: facilitiesData } = useQuery({
@@ -42,9 +42,7 @@ export default function EOCDashboard() {
     mutationFn: async ({ id, status }) =>
       (await api.patch(`/incidents/${id}/status`, { status, note: `Advanced to ${status} by EOC` })).data,
     onSuccess: (data) => {
-      // Patch the cache directly with the server's response instead of
-      // invalidating and re-fetching the whole list — removes an entire
-      // round trip from the perceived latency of clicking a status button.
+      
       queryClient.setQueriesData({ queryKey: ['incidents'] }, (old) => {
         if (!old?.incidents) return old;
         return { ...old, incidents: old.incidents.map((i) => (i._id === data.incident._id ? data.incident : i)) };
@@ -101,9 +99,7 @@ export default function EOCDashboard() {
           </div>
         </div>
 
-        {/* Escalated incidents — high-trust CRITICAL reports still waiting on
-            dispatch. Deliberately the first thing on the page so it can
-            never get buried under a long incident queue. */}
+        
         {escalatedIncidents.length > 0 && (
           <div className="mt-4 rounded-lg border border-severity-critical/50 bg-severity-critical/10 p-3">
             <p className="font-mono text-[11px] uppercase tracking-wide text-severity-critical">
@@ -119,7 +115,7 @@ export default function EOCDashboard() {
           </div>
         )}
 
-        {/* AI situation summary banner */}
+        
         {summaryData && (
           <div className="mt-4 rounded-lg border border-severity-info/40 bg-severity-info/10 px-4 py-3">
             <p className="font-mono text-[11px] uppercase tracking-wide text-severity-info">AI situation summary</p>

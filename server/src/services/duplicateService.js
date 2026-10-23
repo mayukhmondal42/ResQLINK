@@ -1,23 +1,7 @@
-// -----------------------------------------------------------------------------
-// duplicateService.js — flags a newly created incident as a possible
-// duplicate of an existing one, without needing a paid vector database.
-//
-// Approach (cheap but effective for a portfolio project):
-//   1. Geo filter   — MongoDB $near query narrows candidates to incidents
-//                     within DUPLICATE_RADIUS_METERS of the new report.
-//   2. Text filter  — Jaccard similarity on the word sets of the title +
-//                     description. This is a classic, easy-to-explain
-//                     "local embedding-free" similarity metric.
-//   3. Category     — must match the same category as an extra signal.
-//
-// If a strong match is found, the new incident's `duplicateOf` field is set
-// so the EOC dashboard can group/merge them instead of dispatching twice.
-// -----------------------------------------------------------------------------
-
 const Incident = require('../models/Incident');
 
 const DUPLICATE_RADIUS_METERS = 500;
-const SIMILARITY_THRESHOLD = 0.35; // 0 = no overlap, 1 = identical wording
+const SIMILARITY_THRESHOLD = 0.35; 
 
 function jaccardSimilarity(textA, textB) {
   const setA = new Set(textA.toLowerCase().match(/\b\w+\b/g) || []);

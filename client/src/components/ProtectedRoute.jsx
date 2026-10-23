@@ -1,9 +1,3 @@
-// -----------------------------------------------------------------------------
-// ProtectedRoute.jsx — wraps a <Route element={...}> to require login, and
-// optionally a specific role. Redirects unauthenticated users to /login and
-// wrong-role users to their own dashboard instead of showing a blank page.
-// -----------------------------------------------------------------------------
-
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { dashboardPathForRole } from '../utils/roleRouting.js';

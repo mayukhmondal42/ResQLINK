@@ -85,7 +85,6 @@ export default function ReportIncident() {
   };
 
   return (
-    // FIXED: Added bg-[#0b0f14] wrapper - this removes pink background
     <div className="min-h-screen w-full bg-[#0b0f14] px-4 py-8">
       <div className="mx-auto max-w-2xl">
         <h1 className="font-display text-2xl font-semibold text-console-mist">

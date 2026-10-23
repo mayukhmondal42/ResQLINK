@@ -1,12 +1,5 @@
-// -----------------------------------------------------------------------------
-// geo.js — small geospatial helpers shared by the trust-score service.
-// -----------------------------------------------------------------------------
-
 const EARTH_RADIUS_METERS = 6371000;
 
-/**
- * Haversine distance between two [lng, lat] points, in meters.
- */
 function distanceMeters([lng1, lat1], [lng2, lat2]) {
   const toRad = (deg) => (deg * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);

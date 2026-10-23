@@ -1,11 +1,3 @@
-// -----------------------------------------------------------------------------
-// FacilityDashboard.jsx — shared implementation for the Hospital and Shelter
-// portals. Both roles manage the exact same shape of data (a Facility with a
-// capacity bar and a status), so rather than duplicate two nearly-identical
-// pages, one component takes a `facilityType` prop and the two page files
-// (HospitalDashboard.jsx / ShelterDashboard.jsx) just render it.
-// -----------------------------------------------------------------------------
-
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import api from '../api/axiosClient.js';
@@ -18,8 +10,7 @@ const LABELS = {
   shelter: { noun: 'Shelter', capacityNoun: 'occupants', resourceHint: 'e.g. bedding, drinking water, medical tent' },
 };
 
-// Fallback used only if geolocation is unavailable/denied — Mumbai,
-// matching the seeded demo data.
+
 const FALLBACK_LOCATION = { lng: 72.8777, lat: 19.076, label: 'Mumbai (demo default)' };
 
 export default function FacilityDashboard({ facilityType }) {
@@ -53,10 +44,6 @@ export default function FacilityDashboard({ facilityType }) {
   });
   const [capacityUsed, setCapacityUsed] = useState(0);
   const [status, setStatus] = useState('operational');
-
-  // Real device location for placing the facility on the map — same
-  // pattern as ReportIncident.jsx, so a hospital/shelter registering from
-  // anywhere in the world lands in the right place, not just near Mumbai.
   const [locationStatus, setLocationStatus] = useState('detecting');
   const [coords, setCoords] = useState(null);
 
@@ -95,9 +82,6 @@ export default function FacilityDashboard({ facilityType }) {
 
   const registerMutation = useMutation({
     mutationFn: async () => {
-      // Use the real captured location; only fall back to Mumbai (with
-      // jitter, so repeated demo registrations don't stack exactly) if
-      // geolocation was denied or unavailable.
       const jitter = () => (Math.random() - 0.5) * 0.02;
       const lng = coords ? coords.lng : FALLBACK_LOCATION.lng + jitter();
       const lat = coords ? coords.lat : FALLBACK_LOCATION.lat + jitter();
@@ -145,7 +129,6 @@ export default function FacilityDashboard({ facilityType }) {
         {isLoading ? (
           <p className="mt-6 text-sm text-console-muted">Loading…</p>
         ) : !facility ? (
-          // No facility linked to this account yet — first-time setup form.
           <form
             onSubmit={(e) => {
               e.preventDefault();

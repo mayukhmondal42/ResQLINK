@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// EmergencyDirectory.jsx — EOC-only panel answering "how do I reach the
-// nearest hospital / a rescue team / a shelter operator right now?" without
-// leaving the dashboard. Doubles as the review queue for the verification
-// documents each org uploaded at signup (stand-in for a government ID check).
-// -----------------------------------------------------------------------------
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axiosClient.js';
 

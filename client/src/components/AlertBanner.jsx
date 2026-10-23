@@ -1,11 +1,3 @@
-// -----------------------------------------------------------------------------
-// AlertBanner.jsx — the "top bar" high-risk notification the EOC can issue
-// (e.g. a flash-flood warning). Fetches any currently-active alerts on
-// mount so a fresh page load isn't missing one, then stays live via
-// Socket.IO for new alerts / dismissals. Rendered once, inside <Navbar>,
-// so every authenticated page gets it automatically.
-// -----------------------------------------------------------------------------
-
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axiosClient.js';

@@ -1,14 +1,3 @@
-// -----------------------------------------------------------------------------
-// demoSeed.js — populates the database with a reproducible "Mumbai Flood"
-// demo scenario: a handful of users (one per role), shelters, a hospital,
-// and several incidents at real Mumbai coordinates.
-//
-// Run with:  npm run seed   (from the backend/ folder, with MONGO_URI set)
-//
-// Safe to re-run: it wipes only documents flagged isDemoData:true / demo
-// accounts, so it won't touch real user data if you later reuse this DB.
-// -----------------------------------------------------------------------------
-
 require('dotenv').config();
 const mongoose = require('mongoose');
 const connectDB = require('../config/db');
@@ -18,9 +7,7 @@ const Facility = require('../models/Facility');
 const { computeTrustScore, shouldEscalate } = require('../services/trustScoreService');
 const { computeResourceRecommendation, buildShortSummary } = require('../services/aiService');
 
-// Reuses the exact same short-summary logic as production reports (see
-// aiService.js) so seeded demo incidents read identically to a real
-// AI-classified report — no separate/fake summary format for the demo.
+
 function buildDemoSummary(seedIncident) {
   return buildShortSummary({
     text: `${seedIncident.title} ${seedIncident.description}`,
@@ -38,9 +25,7 @@ const DEMO_EMAILS = [
 ];
 const DEMO_PASSWORD = 'Demo@1234';
 
-// A tiny 1x1 transparent PNG used as a stand-in "ID/registration document"
-// for demo accounts — keeps the seed file self-contained with no need to
-// read an actual image file from disk.
+
 const PLACEHOLDER_DOC =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
@@ -62,8 +47,9 @@ async function seed() {
       role: 'rescue_team',
       organizationName: 'NDRF Team 4',
       phone: '8100002302',
-      // Left "pending" on purpose so the EOC directory demo has a live
-      // approve/reject example ready to click through.
+      
+
+
       verificationDocument: { dataUrl: PLACEHOLDER_DOC, fileName: 'ndrf-id.png', status: 'pending', uploadedAt: new Date() },
     },
     {
@@ -149,9 +135,9 @@ async function seed() {
       severity: 'critical',
       coords: [72.8339, 19.0016],
       address: 'Hindmata, Dadar, Mumbai',
-      // Demo: a strong, corroborated report — GPS matches, crowd confirms,
-      // authority has verified it. Also left in "reported" status so it
-      // shows up as escalated on the EOC dashboard.
+      
+
+
       demoVerification: { authorityStatus: 'confirmed', crowdConfirms: 3, crowdDisputes: 0, gpsMatch: true, aiConfidence: 90 },
     },
     {
@@ -162,7 +148,7 @@ async function seed() {
       severity: 'medium',
       coords: [72.8610, 19.0430],
       address: 'Sion Circle, Mumbai',
-      // Demo: freshly reported, nobody has verified it yet — "pending" state.
+      
       demoVerification: { authorityStatus: 'pending', crowdConfirms: 0, crowdDisputes: 0, gpsMatch: null, aiConfidence: 55 },
     },
     {
@@ -173,7 +159,7 @@ async function seed() {
       severity: 'high',
       coords: [72.8656, 19.0669],
       address: 'Bandra Kurla Complex, Mumbai',
-      // Demo: crowd has confirmed it but authority hasn't looked yet — "verified".
+      
       demoVerification: { authorityStatus: 'pending', crowdConfirms: 2, crowdDisputes: 0, gpsMatch: true, aiConfidence: 70 },
     },
     {
@@ -184,7 +170,7 @@ async function seed() {
       severity: 'critical',
       coords: [72.8500, 19.0550],
       address: 'Kurla, Mumbai',
-      // Demo: second escalated/highly-trusted example.
+      
       demoVerification: { authorityStatus: 'confirmed', crowdConfirms: 2, crowdDisputes: 0, gpsMatch: true, aiConfidence: 85 },
     },
     {
@@ -195,9 +181,9 @@ async function seed() {
       severity: 'high',
       coords: [72.8450, 19.0190],
       address: 'Dadar Market, Mumbai',
-      // Demo: this is the "caught a bad report" example — crowd disputed it
-      // and authority rejected it, exactly the fake/mistaken-report defense
-      // the verification system exists for.
+      
+
+
       demoVerification: { authorityStatus: 'rejected', crowdConfirms: 0, crowdDisputes: 2, gpsMatch: false, aiConfidence: 40 },
     },
   ];

@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// incidentController.js — this is where most of ResQLINK's "smart" behaviour
-// lives: creating a report triggers AI analysis + duplicate detection, and
-// every mutation broadcasts a Socket.IO event so every open dashboard updates
-// live without polling.
-// -----------------------------------------------------------------------------
-
 const asyncHandler = require('express-async-handler');
 const Incident = require('../models/Incident');
 const { analyzeIncident } = require('../services/aiService');
@@ -12,8 +5,7 @@ const { findDuplicate } = require('../services/duplicateService');
 const { computeTrustScore, shouldEscalate } = require('../services/trustScoreService');
 const { getIO } = require('../services/socketService');
 
-// @route POST /api/incidents
-// @access citizen (or anyone reporting an SOS)
+
 const createIncident = asyncHandler(async (req, res) => {
   const { type, title, description, category, lng, lat, address, imageUrl, reporterLng, reporterLat } = req.body;
 
@@ -28,9 +20,7 @@ const createIncident = asyncHandler(async (req, res) => {
     description,
     category: category || 'other',
     location: { coordinates: [Number(lng), Number(lat)], address },
-    // Only set reporterLocation if the frontend actually captured GPS
-    // permission — undefined/omitted lng/lat means "no signal", handled as
-    // a neutral score rather than a penalty in trustScoreService.
+    
     reporterLocation:
       reporterLng !== undefined && reporterLat !== undefined
         ? { coordinates: [Number(reporterLng), Number(reporterLat)] }
@@ -56,8 +46,7 @@ const createIncident = asyncHandler(async (req, res) => {
     generatedAt: new Date(),
     source: aiResult.source,
   };
-  // Only auto-apply the AI's severity suggestion if the citizen didn't
-  // already flag it as critical themselves (never downgrade urgency).
+  
   if (incident.severity !== 'critical') {
     incident.severity = aiResult.suggestedSeverity || incident.severity;
   }
@@ -67,8 +56,7 @@ const createIncident = asyncHandler(async (req, res) => {
     incident.status = 'merged';
   }
 
-  // Compute the initial trust score from whatever signals we have so far
-  // (GPS + AI confidence — crowd/authority start neutral until people weigh in).
+  
   incident.verification = computeTrustScore({
     incidentCoords: incident.location.coordinates,
     reporterCoords: incident.reporterLocation?.coordinates || null,
@@ -84,7 +72,7 @@ const createIncident = asyncHandler(async (req, res) => {
 
   await incident.save();
 
-  // Broadcast to every connected EOC dashboard in real time.
+  
   getIO().emit('incident:new', incident);
   if (incident.escalated) {
     getIO().emit('incident:escalated', incident);
@@ -93,9 +81,7 @@ const createIncident = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, incident });
 });
 
-// @route GET /api/incidents
-// Supports simple filtering used by the dashboards, e.g.
-//   /api/incidents?status=reported&severity=critical
+
 const getIncidents = asyncHandler(async (req, res) => {
   const { status, severity, category, mine } = req.query;
   const filter = {};
@@ -112,7 +98,7 @@ const getIncidents = asyncHandler(async (req, res) => {
   res.json({ success: true, count: incidents.length, incidents });
 });
 
-// @route GET /api/incidents/:id
+
 const getIncidentById = asyncHandler(async (req, res) => {
   const incident = await Incident.findById(req.params.id)
     .populate('reportedBy', 'name role phone')
@@ -125,8 +111,7 @@ const getIncidentById = asyncHandler(async (req, res) => {
   res.json({ success: true, incident });
 });
 
-// @route PATCH /api/incidents/:id/status
-// @access eoc, admin, rescue_team
+
 const updateIncidentStatus = asyncHandler(async (req, res) => {
   const { status, note, assignedTeam } = req.body;
   const incident = await Incident.findById(req.params.id);
@@ -149,12 +134,9 @@ const updateIncidentStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, incident });
 });
 
-// @route POST /api/incidents/:id/crowd-verify
-// @access any authenticated user except the original reporter (one vote per
-// person, changing your mind overwrites your previous vote rather than
-// stacking, so the same person can't tip the score by voting repeatedly).
+
 const crowdVerify = asyncHandler(async (req, res) => {
-  const { vote } = req.body; // 'confirm' | 'dispute'
+  const { vote } = req.body; 
   if (!['confirm', 'dispute'].includes(vote)) {
     res.status(400);
     throw new Error("vote must be 'confirm' or 'dispute'");
@@ -201,12 +183,9 @@ const crowdVerify = asyncHandler(async (req, res) => {
   res.json({ success: true, incident });
 });
 
-// @route PATCH /api/incidents/:id/authority-verify
-// @access eoc, admin, rescue_team — stands in for the police/fire/municipal
-// verification step from the spec until dedicated authority accounts exist;
-// the architecture (authorize() + role enum) already supports adding them.
+
 const authorityVerify = asyncHandler(async (req, res) => {
-  const { status, note } = req.body; // 'confirmed' | 'rejected'
+  const { status, note } = req.body; 
   if (!['confirmed', 'rejected'].includes(status)) {
     res.status(400);
     throw new Error("status must be 'confirmed' or 'rejected'");

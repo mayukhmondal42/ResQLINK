@@ -1,9 +1,3 @@
-// -----------------------------------------------------------------------------
-// Facility.js — Shelters and Hospitals both boil down to "a place on the map
-// with a capacity and a status", so we model them with one schema and a
-// `type` discriminator instead of duplicating near-identical collections.
-// -----------------------------------------------------------------------------
-
 const mongoose = require('mongoose');
 
 const facilitySchema = new mongoose.Schema(
@@ -13,16 +7,16 @@ const facilitySchema = new mongoose.Schema(
 
     location: {
       type: { type: String, enum: ['Point'], default: 'Point' },
-      coordinates: { type: [Number], required: true }, // [lng, lat]
+      coordinates: { type: [Number], required: true }, 
       address: { type: String, trim: true },
     },
 
-    // Shelters: total occupants; Hospitals: total beds.
+    
     capacityTotal: { type: Number, default: 0 },
     capacityUsed: { type: Number, default: 0 },
 
-    // Hospitals only — free-text list is enough for a portfolio project.
-    resources: [{ type: String }], // e.g. ["oxygen", "ambulance", "ICU"]
+    
+    resources: [{ type: String }], 
 
     contactPhone: { type: String, trim: true },
     managedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
@@ -40,7 +34,7 @@ const facilitySchema = new mongoose.Schema(
 
 facilitySchema.index({ location: '2dsphere' });
 
-// Convenience virtual used by the frontend to show a capacity bar.
+
 facilitySchema.virtual('occupancyPercent').get(function occupancyPercent() {
   if (!this.capacityTotal) return 0;
   return Math.round((this.capacityUsed / this.capacityTotal) * 100);

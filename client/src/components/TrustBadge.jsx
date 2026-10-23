@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// TrustBadge.jsx — shows an incident's fake-report-defense verification
-// state at a glance: Pending / Suspicious / Verified / Highly Trusted, with
-// the underlying 0-100 score so EOC staff can see *how* confident, not just
-// a label.
-// -----------------------------------------------------------------------------
-
 const STATE_STYLES = {
   pending: { label: 'Pending', className: 'border-console-muted/40 text-console-muted' },
   suspicious: { label: 'Suspicious', className: 'border-severity-critical/50 text-severity-critical' },

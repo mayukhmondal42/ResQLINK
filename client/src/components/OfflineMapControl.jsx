@@ -1,10 +1,3 @@
-// -----------------------------------------------------------------------------
-// OfflineMapControl.jsx — a small panel that lets a citizen download map
-// tiles around a chosen point for offline use ahead of time. Placed next to
-// the map rather than inside it, since it needs its own form controls
-// (radius selection, progress) that don't belong inside the Leaflet canvas.
-// -----------------------------------------------------------------------------
-
 import { useState } from 'react';
 import { downloadTilesForOfflineUse } from '../utils/offlineMap.js';
 
@@ -12,7 +5,7 @@ const RADIUS_OPTIONS = [2, 5, 10];
 
 export default function OfflineMapControl({ center }) {
   const [radiusKm, setRadiusKm] = useState(5);
-  const [status, setStatus] = useState('idle'); // idle | downloading | done | error
+  const [status, setStatus] = useState('idle');
   const [progress, setProgress] = useState({ completed: 0, total: 0 });
 
   const handleDownload = async () => {
