@@ -1,8 +1,3 @@
-// -----------------------------------------------------------------------------
-// aiService.js — ResQLink AI triage
-// Uses Gemini to analyze incident reports — REAL AI ONLY + local fallback
-// -----------------------------------------------------------------------------
-
 const MODELS = [
   'v1beta/models/gemini-3.5-flash',
   'v1beta/models/gemini-3.5-flash-lite',

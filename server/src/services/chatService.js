@@ -1,4 +1,3 @@
-// server/src/services/chatService.js
 const BASE_URL = 'https://generativelanguage.googleapis.com';
 const MODELS = [
   'v1beta/models/gemini-3.5-flash',

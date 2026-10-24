@@ -123,7 +123,7 @@ const logout = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Logged out' });
 });
 
-// @route GET /api/auth/me
+
 const getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, user: req.user });
 });

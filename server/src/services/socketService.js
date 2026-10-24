@@ -7,7 +7,6 @@ function initSocket(httpServer) {
     cors: {
       origin: function (origin, callback) {
         if (!origin) return callback(null, true);
-        // Allow all vercel.app + localhost + CLIENT_URL
         if (origin.endsWith('.vercel.app') || origin.includes('localhost') || origin === process.env.CLIENT_URL) {
           return callback(null, true);
         }

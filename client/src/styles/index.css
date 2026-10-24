@@ -78,7 +78,6 @@ body {
   }
 }
 
-/* FIX: Leaflet was overlapping chatbox — force map to bottom layer */
 .leaflet-pane {
   z-index: 1 !important;
 }

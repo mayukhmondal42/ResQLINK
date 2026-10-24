@@ -64,13 +64,13 @@ const chat = asyncHandler(async (req, res) => {
     return res.json({ success: true, reply, incidents, mode: 'eoc_search' });
   }
 
-  // 3. Hospital / Shelter / Volunteer / EOC er general question - Gemini te jabe
+  
   if (isDispatcher) {
     let reply = await askGemini(message, req.user);
     return res.json({ success: true, reply, incidents: [], mode: 'eoc_chat' });
   }
 
-  // 4. Citizen
+  
   let reply = await generateCitizenAdvice(message);
   let nearestShelter = null;
   if (lng !== undefined && lat !== undefined) {
