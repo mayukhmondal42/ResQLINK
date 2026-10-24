@@ -2,7 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Incident = require('../models/Incident');
 const Facility = require('../models/Facility');
 const { analyzeIncident } = require('../services/aiService');
-const { generateCitizenAdvice, parseEOCQuery } = require('../services/chatService');
+const { generateCitizenAdvice, parseEOCQuery, getGreetingReply, askGemini } = require('../services/chatService');
 const { distanceMeters } = require('../utils/geo');
 
 const getSituationSummary = asyncHandler(async (req, res) => {
@@ -38,48 +38,49 @@ const chat = asyncHandler(async (req, res) => {
   }
 
   const role = String(req.user?.role || '').toLowerCase().trim();
-  const lowerMsg = message.toLowerCase();
+  const lowerMsg = message.toLowerCase().trim();
   console.log('[CHAT] role:', req.user?.role, '->', role, 'msg:', message);
 
-  // FINAL FIX: role na peleo keyword dekhe EOC te pathabe
-  const isEOCKeyword = lowerMsg.includes('unverified') || lowerMsg.includes('critical incidents') || lowerMsg.includes('resolved reports') || lowerMsg.includes('show all') || lowerMsg.includes('flood reports');
-  const isDispatcher = ['eoc', 'admin', 'rescue_team', 'rescue', 'rescueteam', 'dispatcher', 'eoc_admin'].includes(role) || isEOCKeyword;
+  // 1. Greeting - sob role er jonno
+  const greetings = ['hi','hii','hiii','hello','hey','namaste','hi there','hello there'];
+  if (greetings.includes(lowerMsg)) {
+    return res.json({ success: true, reply: getGreetingReply(role), incidents: [], mode: 'greeting' });
+  }
 
-  if (isDispatcher) {
+  const isDispatcher = ['eoc','admin','rescue_team','rescue','rescueteam','dispatcher','eoc_admin','hospital','shelter','volunteer'].includes(role);
+
+  // 2. SUDHU report search keyword thakle search korbe - ETAI ASOL FIX
+  const isSearchQuery = lowerMsg.includes('unverified') || lowerMsg.includes('critical') || lowerMsg.includes('resolved') || lowerMsg.includes('show all') || lowerMsg.includes('reports') || lowerMsg.includes('incidents') || lowerMsg.includes('show') || lowerMsg.includes('flood reports') || lowerMsg.includes('fire reports') || lowerMsg.includes('medical reports');
+
+  if (isDispatcher && isSearchQuery) {
     const { filter, description } = parseEOCQuery(message);
-    const incidents = await Incident.find(filter)
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .select('title severity status category verification createdAt');
-
+    const incidents = await Incident.find(filter).sort({ createdAt: -1 }).limit(10).select('title severity status category verification createdAt');
     let reply;
-    if (incidents.length === 0) {
-      reply = `No incidents match "${description}".`;
-    } else {
+    if (incidents.length === 0) reply = `No incidents match "${description}".`;
+    else {
       const list = incidents.map((i, idx) => `${idx + 1}. ${i.title} - ${i.severity} / ${i.status} (${i.category || 'other'})`).join('\n');
       reply = `Found ${incidents.length} report(s) matching "${description}":\n${list}`;
     }
     return res.json({ success: true, reply, incidents, mode: 'eoc_search' });
   }
 
+  // 3. Hospital / Shelter / Volunteer / EOC er general question - Gemini te jabe
+  if (isDispatcher) {
+    let reply = await askGemini(message, req.user);
+    return res.json({ success: true, reply, incidents: [], mode: 'eoc_chat' });
+  }
+
+  // 4. Citizen
   let reply = await generateCitizenAdvice(message);
   let nearestShelter = null;
-
   if (lng !== undefined && lat !== undefined) {
-    const shelter = await Facility.findOne({
-      type: 'shelter',
-      status: { $ne: 'closed' },
-      location: {
-        $near: { $geometry: { type: 'Point', coordinates: [Number(lng), Number(lat)] } },
-      },
-    });
+    const shelter = await Facility.findOne({ type: 'shelter', status: { $ne: 'closed' }, location: { $near: { $geometry: { type: 'Point', coordinates: [Number(lng), Number(lat)] } } } });
     if (shelter) {
       const distanceKm = (distanceMeters([Number(lng), Number(lat)], shelter.location.coordinates) / 1000).toFixed(1);
       nearestShelter = { name: shelter.name, distanceKm: Number(distanceKm), address: shelter.location.address };
       reply += ` Nearest shelter: ${shelter.name} (${distanceKm} km away).`;
     }
   }
-
   res.json({ success: true, reply, nearestShelter, mode: 'citizen_advice' });
 });
 
