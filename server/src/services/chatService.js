@@ -1,129 +1,88 @@
-const CITIZEN_ADVICE_RULES = [
-  {
-    keywords: ['water', 'flood', 'flooding', 'drowning'],
-    reply: 'Move to higher ground immediately. Avoid walking or driving through moving water — 15cm can knock you off your feet.',
-  },
-  {
-    keywords: ['fire', 'smoke', 'burning'],
-    reply: 'Evacuate immediately. Do not use elevators. Stay low if there is smoke, and cover your nose and mouth with a damp cloth.',
-  },
-  {
-    keywords: ['earthquake', 'shaking', 'building collapse', 'collapsed', 'trapped'],
-    reply: 'Take cover under sturdy furniture and stay away from windows. Do not use elevators. If trapped, tap on a pipe or wall to signal your location.',
-  },
-  {
-    keywords: ['injured', 'bleeding', 'unconscious', 'medical', 'heart attack', 'labor', 'pregnant'],
-    reply: 'Call for medical help immediately using the SOS button. Keep the person still, calm, and warm while help is on the way.',
-  },
+// server/src/services/chatService.js
+const BASE_URL = 'https://generativelanguage.googleapis.com';
+
+const MODELS = [
+  'v1beta/models/gemini-2.0-flash',
 ];
 
-const DEFAULT_ADVICE =
-  'Stay calm and follow official advisories. If you are in immediate danger, use the SOS button to alert emergency services now.';
+const SYSTEM_PROMPT = `You are ResQLink Assistant, a calm, helpful disaster-relief assistant for India. You help citizens with flood, cyclone, earthquake, fire, medical emergencies. Give short, practical steps, helpline numbers (112, 1070, 108), and shelter advice. Never invent helpline numbers. Keep reply under 80 words.`;
 
-async function generateCitizenAdvice(message) {
-  const key = process.env.GEMINI_API_KEY;
-  console.log('=== CHAT DEBUG === KEY EXISTS:', !!key);
-  if (!key) return DEFAULT_ADVICE;
+async function callGemini(userMessage) {
+  const KEY = process.env.GEMINI_API_KEY;
+  if (!KEY) return 'AI not configured. Add GEMINI_API_KEY in server/.env';
+  console.log('=== CHAT DEBUG === KEY EXISTS: true, LEN:', KEY.length);
 
-  const models = [
-    'gemini-2.5-flash-lite',
-    'gemini-2.0-flash-lite',
-    'gemini-2.0-flash',
-    'gemini-2.5-flash',
-    'gemini-3-flash-preview',
-    'gemini-3.0-flash',
-    'gemini-1.5-flash',
-  ];
+  for (const model of MODELS) {
+    try {
+      const url = `${BASE_URL}/${model}:generateContent?key=${KEY}`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
 
-  for (const model of models) {
-    for (const version of ['v1beta', 'v1']) {
-      try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/${version}/models/${model}:generateContent?key=${key}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: `You are ResQLINK Safety Assistant for India. Give short, calm safety advice in simple English, max 3 lines. Emergency numbers: 112, 100 Police, 101 Fire, 108 Ambulance. User says: ${message}` }] }],
-            }),
-          }
-        );
-        const data = await res.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (reply) {
-          console.log('WORKING MODEL FOUND:', version, model);
-          return reply;
-        } else {
-          console.log('FAIL:', version, model, res.status);
-        }
-      } catch (e) { console.log('ERR', model, e.message); }
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${userMessage}` }] }],
+          generationConfig: { maxOutputTokens: 200, temperature: 0.3 },
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      const data = await res.json();
+      if (res.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+        console.log(`WORKING MODEL FOUND: ${model}`);
+        return data.candidates[0].content.parts[0].text;
+      }
+      console.log(`Model ${model} failed:`, res.status, data.error?.message);
+      if (res.status === 400 && data.error?.message?.includes('API key not valid')) {
+        return 'Invalid Gemini API key. Please update GEMINI_API_KEY in server/.env';
+      }
+    } catch (e) {
+      console.log(`Model ${model} exception:`, e.message);
     }
   }
-
-  const text = (message || '').toLowerCase();
-  const match = CITIZEN_ADVICE_RULES.find((rule) => rule.keywords.some((kw) => text.includes(kw)));
-  return match ? match.reply : DEFAULT_ADVICE;
+  return 'AI is temporarily unavailable. Please try again or call 112 for emergencies.';
 }
 
-const CATEGORY_SYNONYMS = {
-  flood: ['flood', 'water', 'flooding'],
-  fire: ['fire', 'burning', 'blaze'],
-  earthquake: ['earthquake', 'quake'],
-  medical: ['medical', 'injury', 'injured'],
-  structural: ['structural', 'collapse', 'collapsed', 'building'],
-};
+async function generateCitizenAdvice(message) {
+  return await callGemini(message);
+}
 
 function parseEOCQuery(message) {
-  const text = (message || '').toLowerCase();
-  const filter = {};
-  const descriptionParts = [];
+  const lower = message.toLowerCase();
+  const filter = { status: { $nin: ['resolved', 'merged'] } };
+  let description = message;
 
-  for (const severity of ['critical', 'high', 'medium', 'low']) {
-    if (text.includes(severity)) {
-      filter.severity = severity;
-      descriptionParts.push(`${severity} severity`);
-      break;
-    }
+  if (lower.includes('unverified')) {
+    filter.verification = { $ne: 'verified' };
+    description = 'unverified reports';
   }
-
-  for (const [category, synonyms] of Object.entries(CATEGORY_SYNONYMS)) {
-    if (synonyms.some((s) => text.includes(s))) {
-      filter.category = category;
-      descriptionParts.push(category);
-      break;
-    }
-  }
-
-  if (/\bunverified\b|\bnot verified\b|\bpending\b/.test(text)) {
-    filter['verification.trustState'] = 'pending';
-    descriptionParts.push('unverified');
-  } else if (/\bsuspicious\b|\bfake\b/.test(text)) {
-    filter['verification.trustState'] = 'suspicious';
-    descriptionParts.push('suspicious');
-  } else if (/\bhighly trusted\b/.test(text)) {
-    filter['verification.trustState'] = 'highly_trusted';
-    descriptionParts.push('highly trusted');
-  } else if (/\bverified\b|\bconfirmed\b/.test(text)) {
-    filter['verification.trustState'] = { $in: ['verified', 'highly_trusted'] };
-    descriptionParts.push('verified');
-  }
-
-  if (/\bresolved\b/.test(text)) {
+  if (lower.includes('flood')) filter.category = 'flood';
+  if (lower.includes('fire')) filter.category = 'fire';
+  if (lower.includes('earthquake')) filter.category = 'earthquake';
+  if (lower.includes('medical')) filter.category = 'medical';
+  if (lower.includes('critical')) { filter.severity = 'critical'; description = 'critical incidents that are active'; }
+  if (lower.includes('resolved')) {
+    delete filter.status;
     filter.status = 'resolved';
-    descriptionParts.push('resolved');
-  } else if (/\brejected\b|\bfake reports?\b/.test(text)) {
-    filter.status = 'rejected';
-    descriptionParts.push('rejected');
-  } else if (/\bactive\b|\bopen\b|\bongoing\b/.test(text)) {
-    filter.status = { $nin: ['resolved', 'rejected', 'merged'] };
-    descriptionParts.push('active');
-  } else if (/\bescalated\b/.test(text)) {
-    filter.escalated = true;
-    descriptionParts.push('escalated');
+    description = 'resolved reports';
   }
 
-  const description = descriptionParts.length ? descriptionParts.join(', ') : 'all incidents';
   return { filter, description };
 }
 
-module.exports = { generateCitizenAdvice, parseEOCQuery };
+async function askGemini(message, user) {
+  return await callGemini(message);
+}
+
+async function getChatResponse(message, user) {
+  return await callGemini(message);
+}
+
+module.exports = {
+  generateCitizenAdvice,
+  parseEOCQuery,
+  askGemini,
+  getChatResponse,
+};

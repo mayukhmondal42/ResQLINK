@@ -64,7 +64,7 @@ export default function AssistantChat() {
   const suggestions = isDispatcher ? EOC_SUGGESTIONS : CITIZEN_SUGGESTIONS;
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 font-body">
+    <div className="fixed bottom-5 right-5 z-[9999] font-body">
       {open && (
         <div className="mb-3 flex h-96 w-80 flex-col overflow-hidden rounded-xl border border-console-border bg-console-surface shadow-2xl">
           <div className="flex items-center justify-between border-b border-console-border bg-console-surfaceAlt px-3 py-2">

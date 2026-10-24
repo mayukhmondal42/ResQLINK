@@ -5,32 +5,20 @@ const { analyzeIncident } = require('../services/aiService');
 const { generateCitizenAdvice, parseEOCQuery } = require('../services/chatService');
 const { distanceMeters } = require('../utils/geo');
 
-
 const getSituationSummary = asyncHandler(async (req, res) => {
   const openIncidents = await Incident.find({ status: { $nin: ['resolved', 'merged'] } });
-
   const counts = openIncidents.reduce((acc, inc) => {
     acc[inc.severity] = (acc[inc.severity] || 0) + 1;
     return acc;
   }, {});
-
   const summary =
     openIncidents.length === 0
       ? 'No active incidents. All clear.'
       : `${openIncidents.length} active incident(s): ` +
-        Object.entries(counts)
-          .map(([severity, count]) => `${count} ${severity}`)
-          .join(', ') +
+        Object.entries(counts).map(([severity, count]) => `${count} ${severity}`).join(', ') +
         '. Prioritize critical and high severity reports first.';
-
-  res.json({
-    success: true,
-    summary,
-    counts,
-    totalOpen: openIncidents.length,
-  });
+  res.json({ success: true, summary, counts, totalOpen: openIncidents.length });
 });
-
 
 const classifyDraft = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
@@ -42,7 +30,6 @@ const classifyDraft = asyncHandler(async (req, res) => {
   res.json({ success: true, ...result });
 });
 
-
 const chat = asyncHandler(async (req, res) => {
   const { message, lng, lat } = req.body;
   if (!message || !message.trim()) {
@@ -50,8 +37,13 @@ const chat = asyncHandler(async (req, res) => {
     throw new Error('message is required');
   }
 
-  
-  const isDispatcher = req.user && ['eoc', 'admin', 'rescue_team'].includes(req.user.role);
+  const role = String(req.user?.role || '').toLowerCase().trim();
+  const lowerMsg = message.toLowerCase();
+  console.log('[CHAT] role:', req.user?.role, '->', role, 'msg:', message);
+
+  // FINAL FIX: role na peleo keyword dekhe EOC te pathabe
+  const isEOCKeyword = lowerMsg.includes('unverified') || lowerMsg.includes('critical incidents') || lowerMsg.includes('resolved reports') || lowerMsg.includes('show all') || lowerMsg.includes('flood reports');
+  const isDispatcher = ['eoc', 'admin', 'rescue_team', 'rescue', 'rescueteam', 'dispatcher', 'eoc_admin'].includes(role) || isEOCKeyword;
 
   if (isDispatcher) {
     const { filter, description } = parseEOCQuery(message);
@@ -60,15 +52,16 @@ const chat = asyncHandler(async (req, res) => {
       .limit(10)
       .select('title severity status category verification createdAt');
 
-    const reply =
-      incidents.length === 0
-        ? `No incidents match "${description}".`
-        : `Found ${incidents.length} report(s) matching "${description}".`;
-
+    let reply;
+    if (incidents.length === 0) {
+      reply = `No incidents match "${description}".`;
+    } else {
+      const list = incidents.map((i, idx) => `${idx + 1}. ${i.title} - ${i.severity} / ${i.status} (${i.category || 'other'})`).join('\n');
+      reply = `Found ${incidents.length} report(s) matching "${description}":\n${list}`;
+    }
     return res.json({ success: true, reply, incidents, mode: 'eoc_search' });
   }
 
- 
   let reply = await generateCitizenAdvice(message);
   let nearestShelter = null;
 
@@ -80,7 +73,6 @@ const chat = asyncHandler(async (req, res) => {
         $near: { $geometry: { type: 'Point', coordinates: [Number(lng), Number(lat)] } },
       },
     });
-
     if (shelter) {
       const distanceKm = (distanceMeters([Number(lng), Number(lat)], shelter.location.coordinates) / 1000).toFixed(1);
       nearestShelter = { name: shelter.name, distanceKm: Number(distanceKm), address: shelter.location.address };

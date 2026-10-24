@@ -5,7 +5,7 @@ const { protect, authorize } = require('../middleware/auth');
 const router = express.Router();
 
 
-router.post('/chat', chat);
+router.post('/chat',protect, chat);
 
 
 router.use(protect);
